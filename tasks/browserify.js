@@ -6,23 +6,23 @@ var browserify = require('browserify');
 var babelify = require("babelify");
 
 
-module.exports = function() {
-    stringify.registerWithRequire({
-        extensions: ['.txt', '.html'],
-        minify: true,
-        minifier: {
-            extensions: ['.html']
-        }
-    });
+module.exports = function () {
+  stringify.registerWithRequire({
+    extensions: ['.txt', '.html'],
+    minify: true,
+    minifier: {
+      extensions: ['.html']
+    }
+  });
 
-    var bundleStream = browserify('./src/scripts/app.js')
-        .transform(babelify, {
-            'presets': ['env']
-        })
-        .transform(stringify(['.html']))
-        .bundle();
+  var bundleStream = browserify('./src/scripts/app.js')
+    .transform(babelify, {
+      'presets': ['env']
+    })
+    .transform(stringify(['.html']))
+    .bundle();
 
-    bundleStream
-        .pipe(source('app.js'))
-        .pipe(gulp.dest('./public/js'))
+  bundleStream
+    .pipe(source('app.js'))
+    .pipe(gulp.dest('./public/js'))
 };
