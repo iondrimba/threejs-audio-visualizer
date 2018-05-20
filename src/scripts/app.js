@@ -9,28 +9,13 @@ class App {
       this.progress(percent);
     });
 
+    this.playIntro = document.querySelector('.play-intro');
     this.loaderBar = document.querySelector('.loader');
 
-    this.loader.load('audio.mp3');
+    this.loader.load('./audio.mp3');
     this.loader.complete = this.complete.bind(this);
-    this.totalSpheres = 625;
-    this.spheres = [];
 
-    this.setupAudio();
-    this.createScene();
-    this.addAmbientLight();
-    this.addHemisphereLight();
-    this.addDirectionalLight();
-    this.addSpotLight();
 
-    this.sphereGroup = new THREE.Object3D();
-    this.scene.add(this.sphereGroup);
-
-    this.addFloor();
-    this.addGrid();
-    this.positionSpheres();
-
-    this.percent = 0;
     this.playing = false;
   }
 
@@ -39,6 +24,7 @@ class App {
     if (percent === 100) {
       setTimeout(() => {
         requestAnimationFrame(() => {
+          this.playIntro.classList.add('control-show');
           this.loaderBar.classList.add('removeLoader');
           this.loaderBar.style.transform = 'scale(1, 0)';
         })
@@ -46,8 +32,50 @@ class App {
     }
   }
 
+  addSoundControls() {
+    this.btnPlay = document.querySelector('.play');
+    this.btnPause = document.querySelector('.pause');
+
+    this.btnPlay.addEventListener('click', () => {
+      this.play();
+    });
+
+    this.btnPause.addEventListener('click', () => {
+      this.pause();
+    });
+  }
+
+  play() {
+    this.audioCtx.resume();
+    this.audioElement.play();
+    this.btnPlay.classList.remove('control-show');
+    this.btnPause.classList.add('control-show');
+  }
+
+  pause() {
+    this.audioElement.pause();
+    this.btnPause.classList.remove('control-show');
+    this.btnPlay.classList.add('control-show');
+  }
+
   complete(file) {
     setTimeout(() => {
+    this.spheres = [];
+
+      this.setupAudio();
+      this.createScene();
+      this.addAmbientLight();
+      this.addHemisphereLight();
+      this.addDirectionalLight();
+      this.addSpotLight();
+      this.addSoundControls();
+      this.sphereGroup = new THREE.Object3D();
+      this.scene.add(this.sphereGroup);
+
+      this.addFloor();
+      this.addGrid();
+      this.positionSpheres();
+
       this.animate();
       this.playSound(file);
     }, 200);
@@ -55,7 +83,8 @@ class App {
 
   createScene() {
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x0);
+    this.scene.background = new THREE.Color(0x4b12b3);
+
 
     this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, .1, 1000);
 
@@ -212,17 +241,51 @@ class App {
 
     this.frequencyData = new Uint8Array(this.bufferLength);
     this.audioElement.volume = 1;
+
+    document.body.addEventListener('mouseup', () => {
+      requestAnimationFrame(() => {
+        document.body.style.cursor = '-moz-grab';
+        document.body.style.cursor = '-webkit-grab';
+      });
+    });
+
+    document.body.addEventListener('mousedown', () => {
+      requestAnimationFrame(() => {
+        document.body.style.cursor = '-moz-grabbing';
+        document.body.style.cursor = '-webkit-grabbing';
+      });
+    });
+
+    this.audioElement.addEventListener('playing', () => {
+      this.playing = true;
+    });
+    this.audioElement.addEventListener('pause', () => {
+      this.playing = false;
+    });
+    this.audioElement.addEventListener('ended', () => {
+      this.playing = false;
+    });
   }
 
   playSound(file) {
+    this.playIntro.addEventListener('click', (evt)=>{
+        evt.currentTarget.classList.remove('control-show');
+        this.play();
+    });
     this.audioElement.src = file;
-    this.audioElement.load();
-    this.audioElement.play();
+  }
 
-    this.playing = true;
+  onResize() {
+    const ww = window.innerWidth;
+    const wh = window.innerHeight;
+    this.camera.aspect = ww / wh;
+    this.camera.updateProjectionMatrix();
+    this.renderer.setSize(ww, wh);
   }
 }
 
 window.addEventListener('DOMContentLoaded', () => {
   window.app = new App();
+
+  window.addEventListener("resize", app.onResize.bind(app));
 });

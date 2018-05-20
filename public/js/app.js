@@ -1,13 +1,13 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 (function (global){
 /*!
- * VERSION: 1.20.3
- * DATE: 2017-10-02
+ * VERSION: 1.20.4
+ * DATE: 2018-02-15
  * UPDATES AND DOCS AT: http://greensock.com
  * 
  * Includes all of the following: TweenLite, TweenMax, TimelineLite, TimelineMax, EasePack, CSSPlugin, RoundPropsPlugin, BezierPlugin, AttrPlugin, DirectionalRotationPlugin
  *
- * @license Copyright (c) 2008-2017, GreenSock. All rights reserved.
+ * @license Copyright (c) 2008-2018, GreenSock. All rights reserved.
  * This work is subject to the terms at http://greensock.com/standard-license or for
  * Club GreenSock members, the software agreement that was issued with your membership.
  * 
@@ -54,7 +54,7 @@ var _gsScope = (typeof(module) !== "undefined" && module.exports && typeof(globa
 			p = TweenMax.prototype = TweenLite.to({}, 0.1, {}),
 			_blankArray = [];
 
-		TweenMax.version = "1.20.3";
+		TweenMax.version = "1.20.4";
 		p.constructor = TweenMax;
 		p.kill()._gc = false;
 		TweenMax.killTweensOf = TweenMax.killDelayedCallsTo = TweenLite.killTweensOf;
@@ -213,7 +213,6 @@ var _gsScope = (typeof(module) !== "undefined" && module.exports && typeof(globa
 						this._time = 0;
 					}
 				}
-
 				if (this._easeType && !yoyoEase) {
 					r = this._time / duration;
 					type = this._easeType;
@@ -704,7 +703,7 @@ var _gsScope = (typeof(module) !== "undefined" && module.exports && typeof(globa
 			},
 			p = TimelineLite.prototype = new SimpleTimeline();
 
-		TimelineLite.version = "1.20.3";
+		TimelineLite.version = "1.20.4";
 		p.constructor = TimelineLite;
 		p.kill()._gc = p._forcingPlayhead = p._hasPause = false;
 
@@ -1455,7 +1454,7 @@ var _gsScope = (typeof(module) !== "undefined" && module.exports && typeof(globa
 
 		p.constructor = TimelineMax;
 		p.kill()._gc = false;
-		TimelineMax.version = "1.20.3";
+		TimelineMax.version = "1.20.4";
 
 		p.invalidate = function() {
 			this._yoyo = (this.vars.yoyo === true);
@@ -1493,7 +1492,7 @@ var _gsScope = (typeof(module) !== "undefined" && module.exports && typeof(globa
 
 		p.tweenTo = function(position, vars) {
 			vars = vars || {};
-			var copy = {ease:_easeNone, useFrames:this.usesFrames(), immediateRender:false},
+			var copy = {ease:_easeNone, useFrames:this.usesFrames(), immediateRender:false, lazy:false},
 				Engine = (vars.repeat && _globals.TweenMax) || TweenLite,
 				duration, p, t;
 			for (p in vars) {
@@ -1504,8 +1503,8 @@ var _gsScope = (typeof(module) !== "undefined" && module.exports && typeof(globa
 			t = new Engine(this, duration, copy);
 			copy.onStart = function() {
 				t.target.paused(true);
-				if (t.vars.time !== t.target.time() && duration === t.duration()) { //don't make the duration zero - if it's supposed to be zero, don't worry because it's already initting the tween and will complete immediately, effectively making the duration zero anyway. If we make duration zero, the tween won't run at all.
-					t.duration( Math.abs( t.vars.time - t.target.time()) / t.target._timeScale );
+				if (t.vars.time !== t.target.time() && duration === t.duration() && !t.isFromTo) { //don't make the duration zero - if it's supposed to be zero, don't worry because it's already initting the tween and will complete immediately, effectively making the duration zero anyway. If we make duration zero, the tween won't run at all.
+					t.duration( Math.abs( t.vars.time - t.target.time()) / t.target._timeScale ).render(t.time(), true, true); //render() right away to ensure that things look right, especially in the case of .tweenTo(0).
 				}
 				if (vars.onStart) { //in case the user had an onStart in the vars - we don't want to overwrite it.
 					vars.onStart.apply(vars.onStartScope || vars.callbackScope || t, vars.onStartParams || []); //don't use t._callback("onStart") or it'll point to the copy.onStart and we'll get a recursion error.
@@ -1520,6 +1519,7 @@ var _gsScope = (typeof(module) !== "undefined" && module.exports && typeof(globa
 			vars.startAt = {onComplete:this.seek, onCompleteParams:[fromPosition], callbackScope:this};
 			vars.immediateRender = (vars.immediateRender !== false);
 			var t = this.tweenTo(toPosition, vars);
+			t.isFromTo = 1; //to ensure we don't mess with the duration in the onStart (we've got the start and end values here, so lock it in)
 			return t.duration((Math.abs( t.vars.time - fromPosition) / this._timeScale) || 0.001);
 		};
 
@@ -1950,7 +1950,7 @@ var _gsScope = (typeof(module) !== "undefined" && module.exports && typeof(globa
 	
 	
 	
-	
+
 	
 /*
  * ----------------------------------------------------------------
@@ -2585,7 +2585,7 @@ var _gsScope = (typeof(module) !== "undefined" && module.exports && typeof(globa
 			p = CSSPlugin.prototype = new TweenPlugin("css");
 
 		p.constructor = CSSPlugin;
-		CSSPlugin.version = "1.20.3";
+		CSSPlugin.version = "1.20.4";
 		CSSPlugin.API = 2;
 		CSSPlugin.defaultTransformPerspective = 0;
 		CSSPlugin.defaultSkewType = "compensated";
@@ -3925,13 +3925,9 @@ var _gsScope = (typeof(module) !== "undefined" && module.exports && typeof(globa
 					}
 					m = e.getAttribute("transform");
 					if (isDefault && m) {
-						if (m.indexOf("matrix") !== -1) { //just in case there's a "transform" value specified as an attribute instead of CSS style. Accept either a matrix() or simple translate() value though.
-							s = m;
-							isDefault = 0;
-						} else if (m.indexOf("translate") !== -1) {
-							s = "matrix(1,0,0,1," + m.match(/(?:\-|\b)[\d\-\.e]+\b/gi).join(",") + ")";
-							isDefault = 0;
-						}
+						m = e.transform.baseVal.consolidate().matrix; //ensures that even complex values like "translate(50,60) rotate(135,0,0)" are parsed because it mashes it into a matrix.
+						s = "matrix(" + m.a + "," + m.b + "," + m.c + "," + m.d + "," + m.e + "," + m.f + ")";
+						isDefault = 0;
 					}
 				}
 				if (isDefault) {
@@ -5760,7 +5756,7 @@ var _gsScope = (typeof(module) !== "undefined" && module.exports && typeof(globa
 				this._calcEnd = (yoyoMode === true);
 			}, true),
 			p = SlowMo.prototype = new Ease(),
-			SteppedEase, RoughEase, _createElastic;
+			SteppedEase, ExpoScaleEase, RoughEase, _createElastic;
 
 		p.constructor = SlowMo;
 		p.getRatio = function(p) {
@@ -5798,6 +5794,25 @@ var _gsScope = (typeof(module) !== "undefined" && module.exports && typeof(globa
 		};
 		p.config = SteppedEase.config = function(steps, immediateStart) {
 			return new SteppedEase(steps, immediateStart);
+		};
+
+		//ExpoScaleEase
+		ExpoScaleEase = _class("easing.ExpoScaleEase", function(start, end, ease) {
+			this._p1 = Math.log(end / start);
+			this._p2 = end - start;
+			this._p3 = start;
+			this._ease = ease;
+		}, true);
+		p = ExpoScaleEase.prototype = new Ease();
+		p.constructor = ExpoScaleEase;
+		p.getRatio = function(p) {
+			if (this._ease) {
+				p = this._ease.getRatio(p);
+			}
+			return (this._p3 * Math.exp(this._p1 * p) - this._p3) / this._p2;
+		};
+		p.config = ExpoScaleEase.config = function(start, end, ease) {
+			return new ExpoScaleEase(start, end, ease);
 		};
 
 
@@ -6413,7 +6428,7 @@ if (_gsScope._gsDefine) { _gsScope._gsQueue.pop()(); } //necessary in case Tween
 
 			//a bug in iOS 6 Safari occasionally prevents the requestAnimationFrame from working initially, so we use a 1.5-second timeout that automatically falls back to setTimeout() if it senses this condition.
 			setTimeout(function() {
-				if (_useRAF === "auto" && _self.frame < 5 && _doc.visibilityState !== "hidden") {
+				if (_useRAF === "auto" && _self.frame < 5 && (_doc || {}).visibilityState !== "hidden") {
 					_self.useRAF(false);
 				}
 			}, 1500);
@@ -6463,7 +6478,7 @@ if (_gsScope._gsDefine) { _gsScope._gsQueue.pop()(); } //necessary in case Tween
 
 		//some browsers (like iOS) occasionally drop the requestAnimationFrame event when the user switches to a different tab and then comes back again, so we use a 2-second setTimeout() to sense if/when that condition occurs and then wake() the ticker.
 		var _checkTimeout = function() {
-				if (_tickerActive && _getTime() - _lastUpdate > 2000 && (_doc.visibilityState !== "hidden" || !_ticker.lagSmoothing())) { //note: if the tab is hidden, we should still wake if lagSmoothing has been disabled.
+				if (_tickerActive && _getTime() - _lastUpdate > 2000 && ((_doc || {}).visibilityState !== "hidden" || !_ticker.lagSmoothing())) { //note: if the tab is hidden, we should still wake if lagSmoothing has been disabled.
 					_ticker.wake();
 				}
 				var t = setTimeout(_checkTimeout, 2000);
@@ -6980,7 +6995,7 @@ if (_gsScope._gsDefine) { _gsScope._gsQueue.pop()(); } //necessary in case Tween
 		p._firstPT = p._targets = p._overwrittenProps = p._startAt = null;
 		p._notifyPluginsOfEnabled = p._lazy = false;
 
-		TweenLite.version = "1.20.3";
+		TweenLite.version = "1.20.4";
 		TweenLite.defaultEase = p._ease = new Ease(null, null, 1, 1);
 		TweenLite.defaultOverwrite = "auto";
 		TweenLite.ticker = _ticker;
@@ -7099,7 +7114,7 @@ if (_gsScope._gsDefine) { _gsScope._gsQueue.pop()(); } //necessary in case Tween
 					if (funcParam || isNaN(s) || (!isRelative && isNaN(end)) || typeof(s) === "boolean" || typeof(end) === "boolean") {
 						//a blob (string that has multiple numbers in it)
 						pt.fp = funcParam;
-						blob = _blobDif(s, (isRelative ? parseFloat(pt.s) + pt.c : end), stringFilter || TweenLite.defaultStringFilter, pt);
+						blob = _blobDif(s, (isRelative ? (parseFloat(pt.s) + pt.c) + (pt.s + "").replace(/[0-9\-\.]/g, "") : end), stringFilter || TweenLite.defaultStringFilter, pt);
 						pt = {t: blob, p: "setRatio", s: 0, c: 1, f: 2, pg: 0, n: overwriteProp || prop, pr: 0, m: 0}; //"2" indicates it's a Blob property tween. Needed for RoundPropsPlugin for example.
 					} else {
 						pt.s = parseFloat(s);
@@ -7989,28 +8004,12 @@ var App = function () {
       _this.progress(percent);
     });
 
+    this.playIntro = document.querySelector('.play-intro');
     this.loaderBar = document.querySelector('.loader');
 
-    this.loader.load('audio.mp3');
+    this.loader.load('./audio.mp3');
     this.loader.complete = this.complete.bind(this);
-    this.totalSpheres = 625;
-    this.spheres = [];
 
-    this.setupAudio();
-    this.createScene();
-    this.addAmbientLight();
-    this.addHemisphereLight();
-    this.addDirectionalLight();
-    this.addSpotLight();
-
-    this.sphereGroup = new THREE.Object3D();
-    this.scene.add(this.sphereGroup);
-
-    this.addFloor();
-    this.addGrid();
-    this.positionSpheres();
-
-    this.percent = 0;
     this.playing = false;
   }
 
@@ -8023,6 +8022,7 @@ var App = function () {
       if (percent === 100) {
         setTimeout(function () {
           requestAnimationFrame(function () {
+            _this2.playIntro.classList.add('control-show');
             _this2.loaderBar.classList.add('removeLoader');
             _this2.loaderBar.style.transform = 'scale(1, 0)';
           });
@@ -8030,20 +8030,67 @@ var App = function () {
       }
     }
   }, {
-    key: 'complete',
-    value: function complete(file) {
+    key: 'addSoundControls',
+    value: function addSoundControls() {
       var _this3 = this;
 
+      this.btnPlay = document.querySelector('.play');
+      this.btnPause = document.querySelector('.pause');
+
+      this.btnPlay.addEventListener('click', function () {
+        _this3.play();
+      });
+
+      this.btnPause.addEventListener('click', function () {
+        _this3.pause();
+      });
+    }
+  }, {
+    key: 'play',
+    value: function play() {
+      this.audioCtx.resume();
+      this.audioElement.play();
+      this.btnPlay.classList.remove('control-show');
+      this.btnPause.classList.add('control-show');
+    }
+  }, {
+    key: 'pause',
+    value: function pause() {
+      this.audioElement.pause();
+      this.btnPause.classList.remove('control-show');
+      this.btnPlay.classList.add('control-show');
+    }
+  }, {
+    key: 'complete',
+    value: function complete(file) {
+      var _this4 = this;
+
       setTimeout(function () {
-        _this3.animate();
-        _this3.playSound(file);
+        _this4.spheres = [];
+
+        _this4.setupAudio();
+        _this4.createScene();
+        _this4.addAmbientLight();
+        _this4.addHemisphereLight();
+        _this4.addDirectionalLight();
+        _this4.addSpotLight();
+        _this4.addSoundControls();
+        _this4.sphereGroup = new THREE.Object3D();
+        _this4.scene.add(_this4.sphereGroup);
+
+        _this4.addFloor();
+        _this4.addGrid();
+        _this4.positionSpheres();
+
+        _this4.animate();
+        _this4.playSound(file);
       }, 200);
     }
   }, {
     key: 'createScene',
     value: function createScene() {
       this.scene = new THREE.Scene();
-      this.scene.background = new THREE.Color(0x0);
+      this.scene.background = new THREE.Color(0x4b12b3);
 
       this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, .1, 1000);
 
@@ -8198,6 +8245,8 @@ var App = function () {
   }, {
     key: 'setupAudio',
     value: function setupAudio() {
+      var _this5 = this;
+
       this.audioElement = document.getElementById('audio');
       this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       this.analyser = this.audioCtx.createAnalyser();
@@ -8210,15 +8259,50 @@ var App = function () {
 
       this.frequencyData = new Uint8Array(this.bufferLength);
       this.audioElement.volume = 1;
+
+      document.body.addEventListener('mouseup', function () {
+        requestAnimationFrame(function () {
+          document.body.style.cursor = '-moz-grab';
+          document.body.style.cursor = '-webkit-grab';
+        });
+      });
+
+      document.body.addEventListener('mousedown', function () {
+        requestAnimationFrame(function () {
+          document.body.style.cursor = '-moz-grabbing';
+          document.body.style.cursor = '-webkit-grabbing';
+        });
+      });
+
+      this.audioElement.addEventListener('playing', function () {
+        _this5.playing = true;
+      });
+      this.audioElement.addEventListener('pause', function () {
+        _this5.playing = false;
+      });
+      this.audioElement.addEventListener('ended', function () {
+        _this5.playing = false;
+      });
     }
   }, {
     key: 'playSound',
     value: function playSound(file) {
-      this.audioElement.src = file;
-      this.audioElement.load();
-      this.audioElement.play();
+      var _this6 = this;
 
-      this.playing = true;
+      this.playIntro.addEventListener('click', function (evt) {
+        evt.currentTarget.classList.remove('control-show');
+        _this6.play();
+      });
+      this.audioElement.src = file;
+    }
+  }, {
+    key: 'onResize',
+    value: function onResize() {
+      var ww = window.innerWidth;
+      var wh = window.innerHeight;
+      this.camera.aspect = ww / wh;
+      this.camera.updateProjectionMatrix();
+      this.renderer.setSize(ww, wh);
     }
   }]);
 
@@ -8227,6 +8311,8 @@ var App = function () {
 
 window.addEventListener('DOMContentLoaded', function () {
   window.app = new App();
+
+  window.addEventListener("resize", app.onResize.bind(app));
 });
 
 },{"./loader":3,"gsap":1}],3:[function(require,module,exports){
