@@ -1,7 +1,7 @@
+import 'styles/index.scss';
 import Loader from './loader';
-import { TweenMax, Power2 } from 'gsap';
 
-class App {
+export default class App {
   constructor() {
 
     this.loader = new Loader();
@@ -12,7 +12,7 @@ class App {
     this.playIntro = document.querySelector('.play-intro');
     this.loaderBar = document.querySelector('.loader');
 
-    this.loader.load('./audio.mp3');
+    this.loader.load('https://iondrimbafilho.me/audio.mp3');
     this.loader.complete = this.complete.bind(this);
 
 
@@ -20,13 +20,13 @@ class App {
   }
 
   progress(percent) {
-    this.loaderBar.style.transform = 'scale(' + percent / 100 + ', 1)';
+    this.loaderBar.style.transform = 'scale(' + percent / 100 + ', .999)';
     if (percent === 100) {
       setTimeout(() => {
         requestAnimationFrame(() => {
           this.playIntro.classList.add('control-show');
           this.loaderBar.classList.add('removeLoader');
-          this.loaderBar.style.transform = 'scale(1, 0)';
+          this.loaderBar.style.transform = 'scale(.999, 0)';
         })
       }, 300);
     }
@@ -60,7 +60,7 @@ class App {
 
   complete(file) {
     setTimeout(() => {
-    this.spheres = [];
+      this.spheres = [];
 
       this.setupAudio();
       this.createScene();
@@ -98,7 +98,7 @@ class App {
     document.body.appendChild(this.renderer.domElement);
 
     this.controls = new THREE.OrbitControls(this.camera);
-    this.controls.noPan = true;
+    this.controls.enablePan = true;
     this.camera.position.z = 20;
     this.camera.position.y = 0;
 
@@ -106,18 +106,9 @@ class App {
     this.scene.rotateY(.8);
   }
 
-  createSphere() {
-    const geometry = new THREE.SphereGeometry(.3, 32, 32);
-    const material = new THREE.MeshPhongMaterial({
-      color: 0x4b12b3,
-      specular: 0xffffff,
-      shininess: 100,
-      emissive: 0x0,
-      shading: THREE.SmoothShading,
-      side: THREE.DoubleSide
-    });
+  createSphere(geometry, material) {
+    const sphere = new THREE.Mesh(geometry, material);
 
-    let sphere = new THREE.Mesh(geometry, material);
     sphere.position.y = .5;
     sphere.castShadow = true;
     sphere.receiveShadow = true;
@@ -181,9 +172,19 @@ class App {
   positionSpheres() {
     const width = 8;
 
+    const geometry = new THREE.SphereBufferGeometry(.3, 32, 32);
+    const material = new THREE.MeshPhongMaterial({
+      color: 0x4b12b3,
+      specular: 0xffffff,
+      shininess: 100,
+      emissive: 0x0,
+      flatShading: THREE.SmoothShading,
+      side: THREE.DoubleSide
+    });
+
     for (let i = 0; i < width; i++) {
       for (let j = 0; j < width; j++) {
-        let sphere = this.createSphere();
+        let sphere = this.createSphere(geometry, material);
         this.sphereGroup.add(sphere);
         sphere.position.x = i;
         sphere.position.z = j;
@@ -200,10 +201,10 @@ class App {
       color: 0xffffff,
       specular: 0x0000,
       shininess: 100,
-      shading: THREE.SmoothShading,
+      flatShading: THREE.SmoothShading,
       side: THREE.BackSide
     });
-    this.object = new THREE.Mesh(new THREE.PlaneGeometry(25, 25), material);
+    this.object = new THREE.Mesh(new THREE.PlaneBufferGeometry(25, 25), material);
     this.object.position.set(0, 0, 0);
     this.object.receiveShadow = true;
     this.object.rotation.x = this.radians(90);
@@ -213,13 +214,12 @@ class App {
 
   drawWave() {
     if (this.playing) {
-
       this.analyser.getByteFrequencyData(this.frequencyData);
 
-      for (var i = 0; i < 64; i++) {
-        var p = this.frequencyData[i];
-        var s = this.spheres[i];
-        var z = s.position;
+      for (let i = 0; i < 64; i++) {
+        const p = this.frequencyData[i];
+        const s = this.spheres[i];
+        const z = s.position;
 
         TweenMax.to(z, .2, {
           y: p / 40
@@ -268,9 +268,9 @@ class App {
   }
 
   playSound(file) {
-    this.playIntro.addEventListener('click', (evt)=>{
-        evt.currentTarget.classList.remove('control-show');
-        this.play();
+    this.playIntro.addEventListener('click', (evt) => {
+      evt.currentTarget.classList.remove('control-show');
+      this.play();
     });
     this.audioElement.src = file;
   }
@@ -284,8 +284,3 @@ class App {
   }
 }
 
-window.addEventListener('DOMContentLoaded', () => {
-  window.app = new App();
-
-  window.addEventListener("resize", app.onResize.bind(app));
-});
