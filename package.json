@@ -2,7 +2,7 @@
   "name": "threejs-audio-visualizer",
   "version": "0.0.1",
   "description": "Audio Visualizer with Threejs",
-  "main": "gulpfile.js",
+  "main": "",
   "keywords": [],
   "repository": {
     "type": "git",
