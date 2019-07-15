@@ -278,9 +278,9 @@ export default class App {
   onResize() {
     const ww = window.innerWidth;
     const wh = window.innerHeight;
+
     this.camera.aspect = ww / wh;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(ww, wh);
   }
 }
-
