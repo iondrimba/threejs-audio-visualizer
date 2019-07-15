@@ -4,7 +4,6 @@ class Loader {
   }
 
   load(file) {
-
     const request = new XMLHttpRequest();
 
     request.open('GET', file, true);
