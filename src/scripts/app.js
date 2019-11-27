@@ -97,7 +97,7 @@ export default class App {
 
     document.body.appendChild(this.renderer.domElement);
 
-    this.controls = new THREE.OrbitControls(this.camera);
+    this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enablePan = true;
     this.camera.position.z = 20;
     this.camera.position.y = 0;
