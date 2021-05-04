@@ -1,9 +1,11 @@
 import 'styles/index.scss';
 import Loader from './loader';
+import * as TweenMax from './TweenMax.min';
+import * as THREE from 'three';
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 export default class App {
   constructor() {
-
     this.loader = new Loader();
     this.loader.progress((percent) => {
       this.progress(percent);
@@ -97,7 +99,7 @@ export default class App {
 
     document.body.appendChild(this.renderer.domElement);
 
-    this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enablePan = true;
     this.camera.position.z = 20;
     this.camera.position.y = 0;
